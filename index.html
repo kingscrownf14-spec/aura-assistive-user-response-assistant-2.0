@@ -1,0 +1,549 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#09111f">
+<title>AURA 2.0 | Assistive Technology Lab</title>
+<style>
+:root {
+  --bg: #09111f;
+  --panel: #111e30;
+  --green: #a3ff65;
+  --muted: #a8b8cc;
+  --border: #293b50;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #f4f8ff;
+  font: 16px/1.6 "Segoe UI", Arial, sans-serif;
+}
+header {
+  padding: 24px 6%;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.logo { color: var(--green); font-size: 29px; font-weight: 800; }
+.tag { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+main { max-width: 1100px; margin: auto; padding: 30px 18px; }
+h1 { font-size: clamp(28px, 5vw, 43px); line-height: 1.2; }
+h2 { font-size: 21px; margin-top: 0; }
+p { color: var(--muted); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 18px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  min-width: 0;
+}
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 115px;
+  background: #091522;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  color: white;
+  font: inherit;
+  resize: vertical;
+}
+button {
+  background: var(--green);
+  color: #10200b;
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 5px 4px 5px 0;
+}
+button.secondary {
+  background: #24364b;
+  color: white;
+  border: 1px solid #40536a;
+}
+button:hover { filter: brightness(1.12); }
+button:focus-visible, textarea:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+.status { color: var(--green); font-weight: 700; }
+.output {
+  background: #091522;
+  border-radius: 9px;
+  padding: 13px;
+  min-height: 55px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.world {
+  background: #091522;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+#map {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  max-width: 280px;
+  margin: 14px auto;
+}
+.cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #20364a;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+.robot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  max-width: 250px;
+  margin: 15px auto;
+}
+.robot button { margin: 0; min-height: 45px; }
+.robot span { min-height: 10px; }
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--muted);
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">AURA<span style="color:white">.</span></div>
+    <div class="tag">ASSISTIVE TECHNOLOGY LAB · VERSION 2.0</div>
+  </div>
+  <div class="status">● SYSTEM ONLINE</div>
+</header>
+
+<main>
+  <p class="status">INDEPENDENT STUDENT INVENTION PROJECT</p>
+  <h1>Technology that puts people first.</h1>
+  <p>Accessible reading tools and a virtual robot with autonomous path planning.</p>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>01 / Read Aloud</h2>
+      <p>Type text and let your browser read it aloud.</p>
+      <label for="reader">Text to read</label>
+      <textarea id="reader">Welcome to AURA. Technology should make everyday tasks easier for everyone.</textarea>
+      <button id="speak">▶ Read text</button>
+      <button id="stopSpeech" class="secondary">■ Stop</button>
+      <p id="speechStatus" role="status" aria-live="polite">Ready to read.</p>
+    </section>
+
+    <section class="panel">
+      <h2>02 / Easy Read</h2>
+      <p>Separate a paragraph into shorter sentences. This starter feature does not rewrite their meaning.</p>
+      <label for="sourceText">Text to process</label>
+      <textarea id="sourceText" placeholder="Paste a paragraph here..."></textarea>
+      <button id="simplify">Process text</button>
+      <h3>Result</h3>
+      <div id="easyOutput" class="output" aria-live="polite">Your result will appear here.</div>
+      <button id="readEasy" class="secondary">▶ Read result</button>
+    </section>
+
+    <section class="panel">
+      <h2>03 / Quick Access</h2>
+      <p>Jump straight to a tool using these shortcuts.</p>
+      <button data-focus="reader">Open reading tool</button>
+      <button data-focus="sourceText" class="secondary">Open Easy Read</button>
+      <div class="output">
+        <strong>Keyboard accessibility</strong>
+        <p>Use Tab to navigate. Press Enter or Space to activate a focused button.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>04 / Autonomous Robot</h2>
+      <p>Find a shortest route across a grid. The robot knows the location of the obstacle in this simulation.</p>
+      <div class="world">
+        <div id="map" role="img" aria-label="Robot grid"></div>
+        <div id="robotStatus" class="status" role="status" aria-live="polite">Robot ready.</div>
+
+        <div class="robot">
+          <span></span><button id="forward" aria-label="Move forward">↑</button><span></span>
+          <button id="left" class="secondary" aria-label="Turn left">←</button>
+          <button id="reset" class="secondary">Reset</button>
+          <button id="right" class="secondary" aria-label="Turn right">→</button>
+          <span></span><button id="back" aria-label="Move backward">↓</button><span></span>
+        </div>
+
+        <button id="findRoute">Find Safe Route</button>
+        <button id="runRoute" class="secondary">Run Route</button>
+        <button id="obstacle" class="secondary">Move Obstacle</button>
+      </div>
+      <p>Green dots show the calculated route. Red squares mark obstacles. The flag is the destination.</p>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>05 / Inventor's Notebook</h2>
+    <p>Write down ideas for your next upgrade.</p>
+    <label for="notes">Improvement idea</label>
+    <textarea id="notes" placeholder="Example: Let the robot discover obstacles by itself."></textarea>
+    <button id="saveNotes">Save note</button>
+    <p id="noteStatus" role="status" aria-live="polite">Your note is kept in this browser when saved.</p>
+  </section>
+</main>
+
+<footer>AURA 2.0 · Student engineering prototype · Not a medical device</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+// 1. READ ALOUD
+$("speak").addEventListener("click", () => {
+  if (!("speechSynthesis" in window)) {
+    $("speechStatus").textContent = "Speech is not supported by this browser.";
+    return;
+  }
+
+  const text = $("reader").value.trim();
+  if (!text) {
+    $("speechStatus").textContent = "Enter some text first.";
+    return;
+  }
+
+  speechSynthesis.cancel();
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+  speech.onstart = () => {
+    $("speechStatus").textContent = "Reading aloud...";
+  };
+  speech.onend = () => {
+    $("speechStatus").textContent = "Finished reading.";
+  };
+  speech.onerror = () => {
+    $("speechStatus").textContent = "Speech could not start.";
+  };
+  speechSynthesis.speak(speech);
+});
+
+$("stopSpeech").addEventListener("click", () => {
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  $("speechStatus").textContent = "Reading stopped.";
+});
+
+// 2. EASY READ: SENTENCE SEPARATION
+$("simplify").addEventListener("click", () => {
+  const text = $("sourceText").value.trim();
+
+  if (!text) {
+    $("easyOutput").textContent = "Please enter some text first.";
+    return;
+  }
+
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+  $("easyOutput").textContent = sentences
+    .map(sentence => sentence.trim())
+    .filter(Boolean)
+    .join("\n\n");
+});
+
+$("readEasy").addEventListener("click", () => {
+  const text = $("easyOutput").innerText.trim();
+
+  if (!text || !("speechSynthesis" in window)) {
+    $("speechStatus").textContent = "No readable result or speech is unsupported.";
+    return;
+  }
+
+  speechSynthesis.cancel();
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.onstart = () => {
+    $("speechStatus").textContent = "Reading result...";
+  };
+  speechSynthesis.speak(speech);
+});
+
+// 3. QUICK ACCESS
+document.querySelectorAll("[data-focus]").forEach(button => {
+  button.addEventListener("click", () => {
+    $(button.dataset.focus).focus();
+  });
+});
+
+// 4. ROBOT STATE
+const SIZE = 5;
+const goal = { x: 4, y: 0 };
+let robot = { x: 0, y: 4, direction: 0 };
+let obstacle = { x: 2, y: 2 };
+let route = [];
+
+const arrows = ["↑", "→", "↓", "←"];
+const key = (x, y) => `${x},${y}`;
+const blocked = (x, y) => x === obstacle.x && y === obstacle.y;
+
+function renderMap() {
+  const map = $("map");
+  map.replaceChildren();
+
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+
+      if (x === robot.x && y === robot.y) {
+        cell.textContent = arrows[robot.direction];
+        cell.style.background = "#315c31";
+        cell.setAttribute("aria-label", "Robot");
+      } else if (blocked(x, y)) {
+        cell.textContent = "🟥";
+        cell.setAttribute("aria-label", "Obstacle");
+      } else if (x === goal.x && y === goal.y) {
+        cell.textContent = "🏁";
+        cell.setAttribute("aria-label", "Destination");
+      } else if (route.some(p => p.x === x && p.y === y)) {
+        cell.textContent = "•";
+        cell.style.background = "#386b38";
+        cell.style.color = "#a3ff65";
+        cell.setAttribute("aria-label", "Planned route");
+      } else {
+        cell.textContent = "·";
+      }
+
+      map.appendChild(cell);
+    }
+  }
+}
+
+// 5. BREADTH-FIRST SEARCH
+// Each legal move costs one step, so BFS finds a shortest route.
+function findSafeRoute() {
+  const start = { x: robot.x, y: robot.y };
+  const startKey = key(start.x, start.y);
+  const goalKey = key(goal.x, goal.y);
+
+  const queue = [start];
+  let head = 0;
+  const parent = new Map();
+  parent.set(startKey, null);
+
+  const directions = [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 }
+  ];
+
+  while (head < queue.length) {
+    const current = queue[head++];
+    const currentKey = key(current.x, current.y);
+
+    if (currentKey === goalKey) break;
+
+    for (const d of directions) {
+      const x = current.x + d.x;
+      const y = current.y + d.y;
+      const nextKey = key(x, y);
+
+      if (
+        x < 0 || x >= SIZE ||
+        y < 0 || y >= SIZE ||
+        blocked(x, y) ||
+        parent.has(nextKey)
+      ) continue;
+
+      parent.set(nextKey, currentKey);
+      queue.push({ x, y });
+    }
+  }
+
+  if (!parent.has(goalKey)) {
+    route = [];
+    $("robotStatus").textContent =
+      "No safe route exists. Move the obstacle and try again.";
+    renderMap();
+    return;
+  }
+
+  const path = [];
+  let currentKey = goalKey;
+
+  while (currentKey !== startKey) {
+    const [x, y] = currentKey.split(",").map(Number);
+    path.push({ x, y });
+    currentKey = parent.get(currentKey);
+  }
+
+  route = path.reverse();
+  renderMap();
+
+  $("robotStatus").textContent = route.length
+    ? `Safe route found: ${route.length} moves.`
+    : "Robot is already at the destination.";
+}
+
+$("findRoute").addEventListener("click", findSafeRoute);
+
+// 6. RUN THE PLANNED ROUTE
+$("runRoute").addEventListener("click", () => {
+  if (robot.x === goal.x && robot.y === goal.y) {
+    $("robotStatus").textContent = "Mission already complete!";
+    return;
+  }
+
+  if (!route.length) {
+    $("robotStatus").textContent = "Find a safe route first.";
+    return;
+  }
+
+  // Check all steps again before moving.
+  const safe = route.every(p =>
+    p.x >= 0 && p.x < SIZE &&
+    p.y >= 0 && p.y < SIZE &&
+    !blocked(p.x, p.y)
+  );
+
+  if (!safe) {
+    route = [];
+    $("robotStatus").textContent =
+      "Route blocked. Calculate a new route.";
+    renderMap();
+    return;
+  }
+
+  const moves = route.length;
+  const first = route[0];
+
+  // Set the robot's direction to face its first move.
+  const dx = first.x - robot.x;
+  const dy = first.y - robot.y;
+
+  if (dx === 1) robot.direction = 1;
+  else if (dx === -1) robot.direction = 3;
+  else if (dy === 1) robot.direction = 2;
+  else if (dy === -1) robot.direction = 0;
+
+  const last = route[route.length - 1];
+  robot.x = last.x;
+  robot.y = last.y;
+  route = [];
+
+  $("robotStatus").textContent =
+    `Mission complete! Destination reached in ${moves} moves.`;
+  renderMap();
+});
+
+// 7. MANUAL ROBOT CONTROLS
+function move(dx, dy) {
+  route = [];
+  const x = robot.x + dx;
+  const y = robot.y + dy;
+
+  if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) {
+    $("robotStatus").textContent = "Boundary detected. Movement blocked.";
+  } else if (blocked(x, y)) {
+    $("robotStatus").textContent = "Obstacle detected. Movement blocked!";
+  } else {
+    robot.x = x;
+    robot.y = y;
+    $("robotStatus").textContent = `Robot moved to ${x}, ${y}.`;
+  }
+
+  renderMap();
+}
+
+$("forward").addEventListener("click", () => {
+  const d = robot.direction;
+  move([0, 1, 0, -1][d], [-1, 0, 1, 0][d]);
+});
+
+$("back").addEventListener("click", () => {
+  const d = robot.direction;
+  move([0, -1, 0, 1][d], [1, 0, -1, 0][d]);
+});
+
+$("left").addEventListener("click", () => {
+  robot.direction = (robot.direction + 3) % 4;
+  route = [];
+  $("robotStatus").textContent = "Robot turned left.";
+  renderMap();
+});
+
+$("right").addEventListener("click", () => {
+  robot.direction = (robot.direction + 1) % 4;
+  route = [];
+  $("robotStatus").textContent = "Robot turned right.";
+  renderMap();
+});
+
+$("reset").addEventListener("click", () => {
+  robot = { x: 0, y: 4, direction: 0 };
+  route = [];
+  $("robotStatus").textContent = "Robot reset to starting position.";
+  renderMap();
+});
+
+// 8. MOVE THE OBSTACLE
+$("obstacle").addEventListener("click", () => {
+  route = [];
+
+  // Cycle through the middle row.
+  let nextX = obstacle.x;
+
+  for (let i = 0; i < SIZE; i++) {
+    nextX = (nextX + 1) % SIZE;
+
+    if (
+      !(nextX === robot.x && obstacle.y === robot.y) &&
+      !(nextX === goal.x && obstacle.y === goal.y)
+    ) break;
+  }
+
+  obstacle = { x: nextX, y: 2 };
+  $("robotStatus").textContent =
+    "Obstacle moved. Find a new safe route.";
+  renderMap();
+});
+
+// 9. INVENTOR'S NOTEBOOK
+const notesKey = "aura-inventor-notes";
+
+try {
+  $("notes").value = localStorage.getItem(notesKey) || "";
+} catch (error) {
+  // The notebook still works if browser storage is unavailable.
+}
+
+$("saveNotes").addEventListener("click", () => {
+  const text = $("notes").value;
+
+  try {
+    localStorage.setItem(notesKey, text);
+    $("noteStatus").textContent =
+      "Note saved in this browser.";
+  } catch (error) {
+    $("noteStatus").textContent =
+      "Browser storage is unavailable. Copy your note somewhere safe.";
+  }
+});
+
+renderMap();
+</script>
+</body>
+</html>
